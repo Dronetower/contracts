@@ -1,0 +1,136 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+/**
+ * @title HVACAssetRegistryHaaS
+ * @notice HVAC-as-a-Service (HaaS) asset and cost tracking contract
+ * @dev Designed for IoT integration and Cryptio accounting ingestion
+ */
+contract HVACAssetRegistryHaaS {
+
+    /**
+     * Equipment types supported under HaaS
+     */
+    enum EquipmentType {
+        Condenser,
+        Evaporator
+    }
+
+    /**
+     * Represents a physical HVAC unit deployed under HaaS
+     */
+    struct HVACAsset {
+        uint256 assetId;             // Unique asset identifier
+        EquipmentType equipmentType; // Type of HVAC equipment
+        string serialNumber;         // Manufacturer serial number
+        address serviceProvider;     // HaaS provider (owns asset)
+        address customer;            // Customer location / account
+        bool active;                 // Whether unit is in service
+    }
+
+    /// Unique asset ID counter
+    uint256 public assetCounter;
+
+    /// Maps asset IDs to HVAC assets
+    mapping(uint256 => HVACAsset) public assets;
+
+    /**
+     * Emitted when HVAC equipment is deployed to a customer
+     * Treated as a capitalized asset in Cryptio
+     */
+    event AssetDeployed(
+        uint256 indexed assetId,
+        EquipmentType equipmentType,
+        string serialNumber,
+        address indexed serviceProvider,
+        address indexed customer,
+        uint256 installCostUSD
+    );
+
+    /**
+     * Emitted when maintenance is performed
+     * Treated as OpEx in Cryptio
+     */
+    event MaintenancePerformed(
+        uint256 indexed assetId,
+        uint256 maintenanceCostUSD,
+        string description
+    );
+
+    /**
+     * Emitted when an HVAC unit is retired or replaced
+     */
+    event AssetRetired(
+        uint256 indexed assetId
+    );
+
+    /**
+     * @notice Deploy a new HVAC unit under HaaS
+     * @param equipmentType Condenser or Evaporator
+     * @param serialNumber Manufacturer serial number
+     * @param customer Customer wallet or account
+     * @param installCostUSD Installation cost in USD cents
+     */
+    function deployAsset(
+        EquipmentType equipmentType,
+        string calldata serialNumber,
+        address customer,
+        uint256 installCostUSD
+    ) external {
+
+        assetCounter++;
+
+        assets[assetCounter] = HVACAsset({
+            assetId: assetCounter,
+            equipmentType: equipmentType,
+            serialNumber: serialNumber,
+            serviceProvider: msg.sender,
+            customer: customer,
+            active: true
+        });
+
+        emit AssetDeployed(
+            assetCounter,
+            equipmentType,
+            serialNumber,
+            msg.sender,
+            customer,
+            installCostUSD
+        );
+    }
+
+    /**
+     * @notice Record maintenance activity for a deployed unit
+     * @param assetId HVAC asset ID
+     * @param maintenanceCostUSD Cost in USD cents
+     * @param description Summary of work performed
+     */
+    function recordMaintenance(
+        uint256 assetId,
+        uint256 maintenanceCostUSD,
+        string calldata description
+    ) external {
+
+        require(assets[assetId].active, "Asset inactive");
+
+        emit MaintenancePerformed(
+            assetId,
+            maintenanceCostUSD,
+            description
+        );
+    }
+
+    /**
+     * @notice Retire HVAC equipment (end of service life)
+     * @param assetId HVAC asset ID
+     */
+    function retireAsset(uint256 assetId) external {
+        require(
+            assets[assetId].serviceProvider == msg.sender,
+            "Only service provider can retire"
+        );
+
+        assets[assetId].active = false;
+        emit AssetRetired(assetId);
+    }
+}
