@@ -1,0 +1,45 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+/// @title Simple BaaS Asset Registry
+/// @notice Register, update, and query simple assets on blockchain
+contract SimpleBaasRegistry {
+
+    struct Asset {
+        uint256 id;
+        string name;
+        string metadata;
+        address owner;
+    }
+
+    uint256 public nextId;
+    mapping(uint256 => Asset) public assets;
+
+    event AssetRegistered(uint256 indexed id, address indexed owner, string name);
+    event AssetUpdated(uint256 indexed id, string metadata);
+
+    /// @notice Register a new asset
+    /// @param _name Human-readable name for the asset
+    /// @param _metadata Freeform metadata (could be IPFS hash, JSON, etc.)
+    function registerAsset(string memory _name, string memory _metadata) external {
+        nextId++;
+        assets[nextId] = Asset(nextId, _name, _metadata, msg.sender);
+        emit AssetRegistered(nextId, msg.sender, _name);
+    }
+
+    /// @notice Update metadata for an existing asset (owner only)
+    /// @param _id ID of the existing asset
+    /// @param _metadata New metadata
+    function updateAsset(uint256 _id, string memory _metadata) external {
+        require(assets[_id].owner == msg.sender, "Not owner");
+        assets[_id].metadata = _metadata;
+        emit AssetUpdated(_id, _metadata);
+    }
+
+    /// @notice Read an asset
+    /// @param _id ID of the asset
+    /// @return Asset struct
+    function getAsset(uint256 _id) external view returns (Asset memory) {
+        return assets[_id];
+    }
+}
