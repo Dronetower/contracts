@@ -1,0 +1,29 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  AssetEventFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs18.x
+      Handler: index.handler
+      CodeUri: lambda/
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE_NAME: AssetEvents
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: AssetEvents
+
+  AssetEventsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: AssetEvents
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: txHash
+          AttributeType: S
+      KeySchema:
+        - AttributeName: txHash
+          KeyType: HASH
