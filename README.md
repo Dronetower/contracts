@@ -1,3 +1,14 @@
+
+# Service Ledger Engine
+
+# An event-driven financial accounting engine that converts operational service events into deterministic journal entries and replayable # balances, designed for auditability and correctness.
+
+
+
+
+
+
+
 # contracts
 HaaS
 Here’s a very basic Ethereum-compatible smart contract written in Solidity representing a simple asset registry on a Blockchain-as-a-Service (HaaS) platform.
