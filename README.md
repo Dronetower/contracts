@@ -1,7 +1,8 @@
 
 # Service Ledger Engine
 
-# An event-driven financial accounting engine that converts operational service events into deterministic journal entries and replayable # balances, designed for auditability and correctness.
+# An event-driven financial accounting engine that converts operational service events into deterministic journal entries and replayable
+# balances, designed for auditability and correctness.
 
 
 
